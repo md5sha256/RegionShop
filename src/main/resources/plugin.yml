@@ -1,0 +1,7 @@
+name: RegionShop
+version: ${project.version}
+main: com.gmail.andrewandy.regionshop.RegionShop
+api-version: 1.16
+prefix: ""
+load: STARTUP
+authors: [ andrewandy ]
