@@ -2,10 +2,12 @@ package com.gmail.andrewandy.regionshop.data;
 
 import com.gmail.andrewandy.regionshop.RegionShop;
 import com.gmail.andrewandy.regionshop.region.IRegion;
+import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.common.base.Charsets;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurateException;
@@ -19,6 +21,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.logging.Level;
 
 final class JsonDataHandler extends AbstractRegionDataHandler {
 
@@ -27,6 +30,8 @@ final class JsonDataHandler extends AbstractRegionDataHandler {
     private final File root;
     @Inject
     private RegionShop plugin;
+    @Inject
+    LogUtils logUtils;
 
     @AssistedInject
     public JsonDataHandler(@Assisted @NotNull File path) {
@@ -46,7 +51,7 @@ final class JsonDataHandler extends AbstractRegionDataHandler {
             super.cachedData.put(region, node);
             return Optional.of(node);
         } catch (ConfigurateException ex) {
-            ex.printStackTrace();
+            logUtils.logException(ex);
             return Optional.empty();
         }
     }
@@ -55,19 +60,23 @@ final class JsonDataHandler extends AbstractRegionDataHandler {
     protected @NotNull Set<@NotNull UUID> readKeys() {
         final File index = new File(root, INDEX_NAME);
         final Set<UUID> set = new HashSet<>();
+        final LogUtils.LogCollector collector = logUtils.newLogCollector();
         try (BufferedReader reader = Files.newBufferedReader(index.toPath());
              Scanner scanner = new Scanner(reader)) {
             scanner.useDelimiter(",");
             while (scanner.hasNext()) {
+                final String next = scanner.next();
                 try {
-                    set.add(UUID.fromString(scanner.next()));
+                    set.add(UUID.fromString(next));
                 } catch (IllegalArgumentException ex) {
-                    ex.printStackTrace();
+                    collector.log(Level.WARNING, "<yellow>Invalid uuid detected: " + next);
                 }
             }
         } catch (IOException ex) {
-            // FIXME log error
+            collector.logException(ex);
+            collector.log(Level.SEVERE, "<red>Failed to read keys | JsonDataHandler</red>");
         }
+        collector.dumpLog();
         return set;
     }
 
@@ -81,7 +90,8 @@ final class JsonDataHandler extends AbstractRegionDataHandler {
                 set.add(scanner.next());
             }
         } catch (IOException ex) {
-            // FIXME log error
+            logUtils.logException(ex);
+            logUtils.log(Level.SEVERE, "<red>Failed to read keys | JsonDataHandler </red>");
         }
         return set;
     }
@@ -105,23 +115,26 @@ final class JsonDataHandler extends AbstractRegionDataHandler {
         // TODO validate
         final Map<UUID, ConfigurationNode> dataCache = new HashMap<>(keys.size());
         final GsonConfigurationLoader.Builder builder = GsonConfigurationLoader.builder().lenient(true);
+        final LogUtils.LogCollector collector = logUtils.newLogCollector();
         for (String rawUUID : keys) {
             final UUID uuid;
             try {
                 uuid = UUID.fromString(rawUUID);
             } catch (IllegalArgumentException iae) {
-                // FIXME log error
+                collector.log(Level.WARNING, "<red>Skipping invalid uuid: " + rawUUID);
                 continue;
             }
             try {
                 final GsonConfigurationLoader loader = builder.file(new File(dataDir, rawUUID + ".json")).build();
                 dataCache.put(uuid, loader.load());
             } catch (ConfigurateException ex) {
-                // FIXME queue error.
+                collector.logException(ex);
+                collector.log(Level.SEVERE, "<red>Failed to load data for uuid: " + rawUUID + "!</red>");
             }
         }
         super.cachedData.clear();
         super.cachedData.putAll(dataCache);
+        collector.dumpLog();
         return dataCache;
     }
 
@@ -136,19 +149,18 @@ final class JsonDataHandler extends AbstractRegionDataHandler {
         // Rebuild index file.
         index.delete();
         final File data = new File(root, DATA_DIR_NAME);
+        final LogUtils.LogCollector collector = logUtils.newLogCollector();
         for (Map.Entry<UUID, ConfigurationNode> entry : map.entrySet()) {
             final File target = new File(data, entry.getKey().toString() + ".json");
             try {
                 final GsonConfigurationLoader loader = GsonConfigurationLoader.builder().file(target).build();
                 loader.save(entry.getValue());
             } catch (IOException ex) {
-                // FIXME log error properly
-
-                // Remove the data file if we fail to write the data
-                target.delete();
-
+                collector.logException(Level.WARNING, ex);
+                collector.log(Level.WARNING, "Failed to update data file for uuid: " + entry.getKey().toString());
             }
         }
+        collector.log(Level.INFO, "<white>Updating index file...</white>");
         try (BufferedWriter writer = Files.newBufferedWriter(index.toPath(), Charsets.UTF_8)) {
             for (UUID uuid : map.keySet()) {
                 writer.write(uuid.toString() + ",");
@@ -156,7 +168,8 @@ final class JsonDataHandler extends AbstractRegionDataHandler {
             }
             writer.flush();
         }
-
+        collector.log(Level.INFO, "<white>Index file updated successfully!");
+        collector.dumpLog();
     }
 
     @Override
