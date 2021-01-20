@@ -10,7 +10,6 @@ import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
-import sun.rmi.runtime.Log;
 
 import java.io.*;
 import java.util.*;
@@ -31,10 +30,20 @@ public class LogUtils {
     @Inject
     private BungeeComponentSerializer serializer;
 
+    private volatile String prefix;
+
+    public synchronized void setPrefix(String prefix) {
+        if (prefix == null) {
+            this.prefix = "";
+        } else {
+            this.prefix = prefix.concat(" ");
+        }
+    }
+
     public void log(@NotNull Level level, @NotNull String... messages) {
         final String[] serialized = new String[messages.length];
         for (int i = 0; i < messages.length; i++) {
-            final Component component = miniMessage.parse(messages[i]);
+            final Component component = miniMessage.parse(prefix + messages[i]);
             final BaseComponent[] bungee = serializer.serialize(component);
             serialized[i] = BaseComponent.toLegacyText(bungee);
         }
@@ -78,7 +87,7 @@ public class LogUtils {
             logException(Level.SEVERE, exception);
         }
 
-        public void logException( @NotNull Level level, @NotNull Exception exception) {
+        public void logException(@NotNull Level level, @NotNull Exception exception) {
             final byte[] data;
             try (final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                  final PrintWriter writer = new PrintWriter(outputStream);) {

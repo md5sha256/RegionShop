@@ -12,21 +12,6 @@ public class FeatureInitializers {
 
     private final Map<Class<?>, Initializer<?>> initializerMap = new HashMap<>();
 
-    private @Nullable <T extends RegionFeature> Initializer<T> defaultInitializer(Class<T> clazz) {
-        try {
-            final Constructor<T> constructor = clazz.getConstructor(IRegion.class);
-            return (region) -> {
-                try {
-                    return constructor.newInstance(region);
-                } catch (ReflectiveOperationException ex) {
-                    throw new UnsupportedOperationException(ex);
-                }
-            };
-        } catch (ReflectiveOperationException ex) {
-            return null;
-        }
-    }
-
     public <T extends RegionFeature> void registerInitializer(@NotNull Class<T> clazz, @NotNull Initializer<T> initializer) {
         initializerMap.put(clazz, initializer);
     }

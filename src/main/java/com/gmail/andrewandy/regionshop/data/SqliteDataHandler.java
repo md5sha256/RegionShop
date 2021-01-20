@@ -2,6 +2,7 @@ package com.gmail.andrewandy.regionshop.data;
 
 import com.gmail.andrewandy.regionshop.RegionShop;
 import com.gmail.andrewandy.regionshop.region.IRegion;
+import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.common.base.Charsets;
 import com.google.inject.Inject;
 import com.zaxxer.hikari.HikariDataSource;
@@ -21,6 +22,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
 
 final class SqliteDataHandler extends AbstractRegionDataHandler {
 
@@ -32,6 +34,8 @@ final class SqliteDataHandler extends AbstractRegionDataHandler {
     private HikariDataSource dataSource;
     @Inject
     private RegionShop plugin;
+    @Inject
+    private LogUtils logUtils;
 
     public SqliteDataHandler() {
 
@@ -126,47 +130,56 @@ final class SqliteDataHandler extends AbstractRegionDataHandler {
 
     @Override
     protected @NotNull Set<@NotNull UUID> readKeys() {
+        final LogUtils.LogCollector collector = logUtils.newLogCollector();
         try (Connection connection = dataSource.getConnection();
              PreparedStatement statement = statementReadKeysOnly(connection);
              ResultSet resultSet = statement.executeQuery()) {
             final Set<UUID> keys = new HashSet<>();
             while (resultSet.next()) {
+                final String raw = resultSet.getString(PRIMARY_KEY);
                 try {
-                    keys.add(UUID.fromString(resultSet.getString(PRIMARY_KEY)));
+                    keys.add(UUID.fromString(raw));
                 } catch (IllegalArgumentException ex) {
-                    ex.printStackTrace();
-                    // FIXME LOG ERROR
+                    collector.log(Level.WARNING, "<yellow>Invalid UUID detected: " + raw);
                 }
             }
             return keys;
 
         } catch (SQLException ex) {
-            ex.printStackTrace();
+            collector.log(Level.SEVERE, "<red>Database error when reading keys | SqliteDataHandler</red>");
+            collector.logException(ex);
+        } finally {
+            collector.dumpLog();
         }
         return Collections.emptySet();
     }
 
     @Override
     protected Map<@NotNull UUID, @NotNull ConfigurationNode> readDataFully() {
+        final LogUtils.LogCollector collector = logUtils.newLogCollector();
         try (Connection connection = dataSource.getConnection()) {
             return readDataFully(connection);
         } catch (SQLException ex) {
-            // FIXME log error
-            ex.printStackTrace();
+            collector.logException(ex);
+            collector.log(Level.SEVERE, "<red>Database error when reading keys | SqliteDataHandler</red>");
+        } finally {
+            collector.dumpLog();
         }
         return Collections.emptyMap();
     }
 
     private Map<@NotNull UUID, @NotNull ConfigurationNode> readDataFully(@NotNull Connection connection) {
         final Map<UUID, ConfigurationNode> map = new HashMap<>();
+        final LogUtils.LogCollector collector = logUtils.newLogCollector();
         try (PreparedStatement preparedStatement = statementReadData(connection);
              ResultSet resultSet = preparedStatement.executeQuery()) {
             while (resultSet.next()) {
                 final UUID uuid;
+                final String raw = resultSet.getString(PRIMARY_KEY);
                 try {
-                    uuid = UUID.fromString(resultSet.getString(PRIMARY_KEY));
+                    uuid = UUID.fromString(raw);
                 } catch (IllegalArgumentException ex) {
-                    //FIXME LOG ERROR
+                    collector.log(Level.WARNING, "<yellow>Invalid UUID detected: " + raw);
                     continue;
                 }
                 final byte[] rawData = resultSet.getBytes(DATA_KEY);
@@ -175,14 +188,17 @@ final class SqliteDataHandler extends AbstractRegionDataHandler {
                 try {
                     map.put(uuid, loader.load());
                 } catch (ConfigurateException ex) {
-                    // FIXME log error
+                    collector.logException(ex);
+                    collector.log(Level.SEVERE, "<red>Failed to load data for uuid: " + uuid);
                 }
             }
         } catch (SQLException ex) {
             super.cachedData.clear();
-            // FIXME log error properly
-            ex.printStackTrace();
+            collector.logException(ex);
+            collector.log(Level.SEVERE, "<red>Database error when loading data | SqliteDataHandler</red>");
             return Collections.emptyMap();
+        } finally {
+            collector.dumpLog();
         }
         super.cachedData.clear();
         super.cachedData.putAll(map);
@@ -193,6 +209,7 @@ final class SqliteDataHandler extends AbstractRegionDataHandler {
     public void flushChanges() throws IOException {
         final Set<UUID> removedCopy = new HashSet<>(this.removed);
         final Map<UUID, byte[]> dataCopy = new HashMap<>();
+        final LogUtils.LogCollector collector = logUtils.newLogCollector();
         for (Map.Entry<UUID, ConfigurationNode> entry : this.cachedData.entrySet()) {
             try (final StringWriter writer = new StringWriter()) {
                 final GsonConfigurationLoader loader = GsonConfigurationLoader.builder().sink(() -> new BufferedWriter(writer)).build();
@@ -200,8 +217,8 @@ final class SqliteDataHandler extends AbstractRegionDataHandler {
                 final byte[] data = writer.getBuffer().toString().getBytes(StandardCharsets.UTF_8);
                 dataCopy.put(entry.getKey(), data);
             } catch (ConfigurateException ex) {
-                // FIXME LOG ERROR
-                ex.printStackTrace();
+                collector.logException(ex);
+                collector.log(Level.SEVERE, "<red>Failed to save data for uuid: " + entry.getKey().toString());
             }
         }
         this.removed.clear();
@@ -212,6 +229,8 @@ final class SqliteDataHandler extends AbstractRegionDataHandler {
             updateBatch.executeBatch();
         } catch (SQLException ex) {
             throw new IOException(ex);
+        } finally {
+            collector.dumpLog();
         }
     }
 

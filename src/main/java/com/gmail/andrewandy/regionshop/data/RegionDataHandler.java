@@ -17,6 +17,8 @@ public interface RegionDataHandler {
 
     @NotNull Optional<? extends ConfigurationNode> getDataFor(@NotNull UUID region);
 
+    @NotNull ConfigurationNode getOrCreateDataFor(@NotNull IRegion region);
+
     void removeData(@NotNull UUID region);
 
     void removeData(@NotNull IRegion region);
