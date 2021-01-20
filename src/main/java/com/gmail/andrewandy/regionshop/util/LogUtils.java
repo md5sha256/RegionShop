@@ -1,9 +1,10 @@
 package com.gmail.andrewandy.regionshop.util;
 
 import cloud.commandframework.types.tuples.Pair;
-import com.gmail.andrewandy.regionshop.RegionShop;
+import co.aikar.taskchain.TaskChainFactory;
+import com.gmail.andrewandy.regionshop.configuration.InternalConfig;
 import com.google.inject.Inject;
-import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import com.google.inject.name.Named;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
@@ -11,8 +12,13 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.*;
-import java.util.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -20,17 +26,16 @@ import java.util.logging.Logger;
 public class LogUtils {
 
     @Inject
+    @Named("internal-logger")
     private Logger logger;
     @Inject
-    private RegionShop plugin;
-    @Inject
-    private BukkitAudiences audiences;
+    private TaskChainFactory taskChainFactory;
     @Inject
     private MiniMessage miniMessage;
     @Inject
     private BungeeComponentSerializer serializer;
 
-    private volatile String prefix;
+    private volatile String prefix = "";
 
     public synchronized void setPrefix(String prefix) {
         if (prefix == null) {
@@ -52,11 +57,11 @@ public class LogUtils {
                 logger.log(level, s);
             }
         } else {
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            taskChainFactory.newChain().sync(() -> {
                 for (String s : serialized) {
                     logger.log(level, s);
                 }
-            });
+            }).execute();
         }
     }
 
@@ -64,7 +69,7 @@ public class LogUtils {
         if (Bukkit.isPrimaryThread()) {
             exception.printStackTrace();
         } else {
-            Bukkit.getScheduler().runTask(plugin, (Runnable) exception::printStackTrace);
+            taskChainFactory.newChain().sync(exception::printStackTrace).execute();
         }
     }
 
@@ -74,10 +79,10 @@ public class LogUtils {
 
     public class LogCollector {
 
+        private final List<Pair<String[], Level>> toLog = new LinkedList<>();
+
         private LogCollector() {
         }
-
-        private final List<Pair<String[], Level>> toLog = new LinkedList<>();
 
         public void log(@NotNull Level level, @NotNull String... messages) {
             toLog.add(Pair.of(Objects.requireNonNull(messages), level));
@@ -114,12 +119,12 @@ public class LogUtils {
             this.toLog.clear();
             // Force synchronization with main
             final CompletableFuture<Void> future = new CompletableFuture<>();
-            Bukkit.getScheduler().runTask(plugin, () -> {
+            taskChainFactory.newChain().sync(() -> {
                 for (Pair<String[], Level> pair : copy) {
                     LogUtils.this.log(pair.getSecond(), pair.getFirst());
                 }
                 future.complete(null);
-            });
+            }).execute();
             return future;
         }
 

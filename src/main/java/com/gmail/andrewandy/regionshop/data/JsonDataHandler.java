@@ -1,13 +1,11 @@
 package com.gmail.andrewandy.regionshop.data;
 
-import com.gmail.andrewandy.regionshop.RegionShop;
+import com.gmail.andrewandy.regionshop.RegionShopPlugin;
+import com.gmail.andrewandy.regionshop.configuration.InternalConfig;
 import com.gmail.andrewandy.regionshop.region.IRegion;
 import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.common.base.Charsets;
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurateException;
@@ -23,20 +21,36 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 
-final class JsonDataHandler extends AbstractRegionDataHandler {
+public final class JsonDataHandler extends AbstractRegionDataHandler {
 
     private static final String INDEX_NAME = "index.txt";
     private static final String DATA_DIR_NAME = "data";
-    private final File root;
-    @Inject
-    private RegionShop plugin;
-    @Inject
-    LogUtils logUtils;
+    private static final GsonConfigurationLoader EMPTY_LOADER = GsonConfigurationLoader.builder().lenient(true).build();
 
-    @AssistedInject
-    public JsonDataHandler(@Assisted @NotNull File path) {
-        this.root = path;
+    @Inject
+    private LogUtils logUtils;
+    @Inject
+    private RegionShopPlugin plugin;
+    @Inject
+    private InternalConfig config;
+
+    private File root;
+
+    @Override
+    public void init() {
+        this.root = new File(config.getDatabaseOptions().getDatabaseURL());
         readDataFully();
+    }
+
+    @Override
+    public @NotNull ConfigurationNode getOrCreateDataFor(@NotNull IRegion region) {
+        final Optional<? extends ConfigurationNode> optional = getDataFor(region);
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+        final ConfigurationNode node = EMPTY_LOADER.createNode();
+        super.cachedData.put(region.getUUID(), node);
+        return node;
     }
 
     @Override
