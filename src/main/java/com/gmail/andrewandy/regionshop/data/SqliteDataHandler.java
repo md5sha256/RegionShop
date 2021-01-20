@@ -1,12 +1,11 @@
 package com.gmail.andrewandy.regionshop.data;
 
-import com.gmail.andrewandy.regionshop.RegionShopPlugin;
+import co.aikar.taskchain.TaskChainFactory;
 import com.gmail.andrewandy.regionshop.region.IRegion;
 import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.common.base.Charsets;
 import com.google.inject.Inject;
 import com.zaxxer.hikari.pool.HikariPool;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -27,14 +26,14 @@ import java.util.logging.Level;
 public final class SqliteDataHandler extends AbstractRegionDataHandler {
 
     private static final String PRIMARY_KEY = "uuid";
-    private static final String DATA_KEY = "data";
+    private static final String DATA_KEY = "json_data";
     private static final String TABLE_NAME = "regionshop_regions";
     private static final GsonConfigurationLoader EMPTY_LOADER = GsonConfigurationLoader.builder().lenient(true).build();
     private final Set<UUID> removed = ConcurrentHashMap.newKeySet();
     @Inject
     private HikariPool dataSource;
     @Inject
-    private RegionShopPlugin plugin;
+    private TaskChainFactory taskChainFactory;
     @Inject
     private LogUtils logUtils;
 
@@ -44,8 +43,9 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
 
     @Override
     public final void init() throws IOException {
-        try (Connection connection = dataSource.getConnection()) {
-            statementInitTable(connection).close();
+        try (Connection connection = dataSource.getConnection();
+             PreparedStatement initTable = statementInitTable(connection)) {
+            initTable.execute();
             readDataFully(connection);
         } catch (SQLException ex) {
             throw new IOException(ex);
@@ -190,7 +190,7 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
     @Override
     public @NotNull CompletableFuture<Void> flushChangesAsync() {
         final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        taskChainFactory.newChain().async(() -> {
             try {
                 flushChanges();
                 completableFuture.complete(null);
@@ -199,12 +199,12 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
                     completableFuture.completeExceptionally(ex);
                 }
             }
-        });
+        }).execute();
         return completableFuture;
     }
 
     private PreparedStatement statementWriteData(@NotNull Connection connection, @NotNull UUID target, byte[] data) throws SQLException {
-        final String sql = "INSERT INTO " + TABLE_NAME + "(" + PRIMARY_KEY + ", " + DATA_KEY + ") VALUES(?,?) ON DUPLICATE KEY UPDATE " + PRIMARY_KEY + "=?, " + DATA_KEY + "=?";
+        final String sql = "INSERT INTO " + TABLE_NAME + " (" + PRIMARY_KEY + ", " + DATA_KEY + ") VALUES(?,?) ON CONFLICT (" + PRIMARY_KEY + ") DO UPDATE SET " + PRIMARY_KEY + "=?, " + DATA_KEY + "=?";
         final PreparedStatement preparedStatement = connection.prepareStatement(sql);
         final SerialBlob blob = new SerialBlob(data);
         preparedStatement.setString(1, target.toString());
@@ -215,7 +215,8 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
     }
 
     private PreparedStatement statementUpdateDataBatch(@NotNull Connection connection, @NotNull Map<UUID, byte[]> targets) throws SQLException {
-        final String sql = "INSERT INTO " + TABLE_NAME + "(" + PRIMARY_KEY + ", " + DATA_KEY + ") VALUES(?,?) ON DUPLICATE KEY UPDATE " + PRIMARY_KEY + "=?, " + DATA_KEY + "=?";
+        final String sql = "INSERT INTO " + TABLE_NAME + " (" + PRIMARY_KEY + ", " + DATA_KEY + ") VALUES(?,?) ON CONFLICT (" + PRIMARY_KEY + ") DO UPDATE SET " + PRIMARY_KEY + "=?, " + DATA_KEY + "=?";
+        System.out.println(sql);
         final PreparedStatement preparedStatement = connection.prepareStatement(sql);
         for (Map.Entry<UUID, byte[]> entry : targets.entrySet()) {
             final UUID target = entry.getKey();

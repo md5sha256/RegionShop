@@ -1,12 +1,12 @@
 package com.gmail.andrewandy.regionshop.data;
 
-import com.gmail.andrewandy.regionshop.RegionShopPlugin;
+import co.aikar.taskchain.TaskChainFactory;
 import com.gmail.andrewandy.regionshop.configuration.InternalConfig;
 import com.gmail.andrewandy.regionshop.region.IRegion;
 import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.common.base.Charsets;
 import com.google.inject.Inject;
-import org.bukkit.Bukkit;
+import com.google.inject.name.Named;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
@@ -30,15 +30,19 @@ public final class JsonDataHandler extends AbstractRegionDataHandler {
     @Inject
     private LogUtils logUtils;
     @Inject
-    private RegionShopPlugin plugin;
+    private TaskChainFactory taskChainFactory;
     @Inject
     private InternalConfig config;
+    @Inject
+    @Named("internal-data-folder")
+    private File internalDataFolder;
 
     private File root;
 
     @Override
     public void init() {
-        this.root = new File(config.getDatabaseOptions().getDatabaseURL());
+        this.root = new File(config.getDatabaseOptions().getDatabaseURL().replaceAll("%_", internalDataFolder.getAbsolutePath() + File.separator));
+        this.root.mkdir();
         readDataFully();
     }
 
@@ -160,6 +164,7 @@ public final class JsonDataHandler extends AbstractRegionDataHandler {
             map.put(entry.getKey(), entry.getValue().copy());
         }
         final File index = new File(root, INDEX_NAME);
+        System.out.println(index.getAbsolutePath());
         // Rebuild index file.
         index.delete();
         final File data = new File(root, DATA_DIR_NAME);
@@ -189,7 +194,7 @@ public final class JsonDataHandler extends AbstractRegionDataHandler {
     @Override
     public @NotNull CompletableFuture<Void> flushChangesAsync() {
         final CompletableFuture<Void> completableFuture = new CompletableFuture<>();
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        taskChainFactory.newChain().async(() -> {
             try {
                 flushChanges();
                 completableFuture.complete(null);
@@ -198,7 +203,7 @@ public final class JsonDataHandler extends AbstractRegionDataHandler {
                     completableFuture.completeExceptionally(ex);
                 }
             }
-        });
+        }).execute();
         return completableFuture;
     }
 }

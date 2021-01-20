@@ -8,5 +8,9 @@ public interface RegionShopConfig {
 
     @NotNull String getLogPrefix();
 
+    void setLogPrefix(@NotNull String prefix);
+
     @NotNull DatabaseOptions getDatabaseOptions();
+
+    void setDatabaseOption(@NotNull DatabaseOptions databaseOptions);
 }

@@ -2,14 +2,12 @@ package com.gmail.andrewandy.regionshop.util;
 
 import cloud.commandframework.types.tuples.Pair;
 import co.aikar.taskchain.TaskChainFactory;
-import com.gmail.andrewandy.regionshop.configuration.InternalConfig;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
-import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
@@ -52,25 +50,15 @@ public class LogUtils {
             final BaseComponent[] bungee = serializer.serialize(component);
             serialized[i] = BaseComponent.toLegacyText(bungee);
         }
-        if (Bukkit.isPrimaryThread()) {
+        taskChainFactory.newChain().sync(() -> {
             for (String s : serialized) {
                 logger.log(level, s);
             }
-        } else {
-            taskChainFactory.newChain().sync(() -> {
-                for (String s : serialized) {
-                    logger.log(level, s);
-                }
-            }).execute();
-        }
+        }).execute();
     }
 
     public void logException(@NotNull Exception exception) {
-        if (Bukkit.isPrimaryThread()) {
-            exception.printStackTrace();
-        } else {
-            taskChainFactory.newChain().sync(exception::printStackTrace).execute();
-        }
+        taskChainFactory.newChain().sync(exception::printStackTrace).execute();
     }
 
     public @NotNull LogCollector newLogCollector() {
