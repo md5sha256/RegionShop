@@ -57,5 +57,16 @@ public class InternalConfig implements RegionShopConfig {
         return databaseOptions;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        InternalConfig that = (InternalConfig) o;
+        return configVersion == that.configVersion && logPrefix.equals(that.logPrefix) && databaseOptions.equals(that.databaseOptions);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(configVersion, logPrefix, databaseOptions);
+    }
 }

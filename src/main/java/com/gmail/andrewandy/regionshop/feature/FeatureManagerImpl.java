@@ -2,26 +2,31 @@ package com.gmail.andrewandy.regionshop.feature;
 
 import com.gmail.andrewandy.regionshop.data.RegionDataHandler;
 import com.gmail.andrewandy.regionshop.region.IRegion;
-import com.google.common.collect.ClassToInstanceMap;
+import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.common.collect.MutableClassToInstanceMap;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import io.leangen.geantyref.TypeToken;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.serialize.SerializationException;
 
 import javax.inject.Inject;
-import java.lang.reflect.Type;
 import java.util.*;
+import java.util.logging.Level;
 
 public class FeatureManagerImpl implements RegionFeatureManager {
 
-    private static final Type MAP_TOKEN = new TypeToken<MutableClassToInstanceMap<RegionFeature>>() {}.getType();
+    private static final TypeToken<MutableClassToInstanceMap<RegionFeature>> MAP_TOKEN =
+            new TypeToken<MutableClassToInstanceMap<RegionFeature>>() {
+            };
 
     @Inject
     private FeatureInitializers initializers;
     @Inject
     private RegionDataHandler dataHandler;
+    @Inject
+    private LogUtils logUtils;
 
     private final MutableClassToInstanceMap<RegionFeature> featureMap = MutableClassToInstanceMap.create();
     private final IRegion region;
@@ -59,12 +64,24 @@ public class FeatureManagerImpl implements RegionFeatureManager {
 
     @Override
     public void clear() {
-        featureMap.clear();
+        this.featureMap.clear();
     }
 
     @Override
     public void loadFeatures() {
+        this.featureMap.clear();
         final ConfigurationNode data = dataHandler.getOrCreateDataFor(region);
-
+        if (data.empty()) {
+            return;
+        }
+        try {
+            final MutableClassToInstanceMap<RegionFeature> map = data.get(MAP_TOKEN);
+            if (map != null) {
+                this.featureMap.putAll(map);
+            }
+        } catch (SerializationException ex) {
+            this.logUtils.logException(ex);
+            this.logUtils.log(Level.SEVERE, "<red>Failed to deserialize feature data for region: " + region.getRegionID());
+        }
     }
 }

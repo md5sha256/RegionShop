@@ -1,5 +1,6 @@
 package com.gmail.andrewandy.regionshop;
 
+import com.gmail.andrewandy.regionshop.configuration.ConfigurationTransformer;
 import com.gmail.andrewandy.regionshop.configuration.DatabaseOptions;
 import com.gmail.andrewandy.regionshop.configuration.InternalConfig;
 import com.gmail.andrewandy.regionshop.configuration.RegionShopConfig;
@@ -18,12 +19,16 @@ import io.leangen.geantyref.TypeToken;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.serialize.SerializationException;
+import scala.Int;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.UUID;
 import java.util.logging.Level;
@@ -70,9 +75,40 @@ public class TestConfiguration {
             }
         }
     }
+    
+    @Test
+    public void testConfigurationMutation() {
+        final HoconConfigurationLoader loader = HoconConfigurationLoader.builder().build();
+        final ConfigurationNode initialNode = loader.createNode();
+        final InternalConfig initialConfig = new InternalConfig();
+        Assertions.assertEquals(initialConfig, new InternalConfig());
+        final DatabaseOptions fromConfig = initialConfig.getDatabaseOptions();
+        Assertions.assertEquals(fromConfig, DatabaseOptions.defaultOptions());
+        final String randomName = UUID.randomUUID().toString();
+        fromConfig.setUsername(randomName);
+        fromConfig.setPassword(randomName);
+        fromConfig.setDatabaseURL("abc");
+        fromConfig.setDatabaseType(DatabaseType.SQLITE);
+        Assertions.assertEquals(fromConfig.getUsername(), randomName);
+        Assertions.assertEquals(fromConfig.getPassword(), randomName);
+        Assertions.assertEquals(fromConfig.getDatabaseURL(), "abc");
+        Assertions.assertEquals(fromConfig.getDatabaseType(), DatabaseType.SQLITE);
+        try {
+            initialNode.set(initialConfig);
+            final InternalConfig deserialized = initialNode.get(TypeToken.get(InternalConfig.class));
+            Assertions.assertNotNull(deserialized);
+            Assertions.assertEquals(deserialized, initialConfig);
+            Assertions.assertEquals(deserialized.hashCode(), initialConfig.hashCode());
+        } catch (SerializationException ex) {
+            Assertions.fail(ex);
+        }
+        final InternalConfig empty = new InternalConfig();
+        empty.setValues(initialConfig);
+        Assertions.assertEquals(empty, initialConfig);
+    }
 
     @Test
-    public void testConfiguration() {
+    public void testConfigurationLoading() {
         final File file = new File(dummyDir, "settings.conf");
         final HoconConfigurationLoader configurationLoader = HoconConfigurationLoader.builder().file(file).build();
         Assertions.assertTrue(configurationLoader.canLoad());
@@ -97,6 +133,27 @@ public class TestConfiguration {
             Assertions.fail(ex);
         }
     }
+
+    @Test
+    public void testConfigVersionValidation() {
+        Injector injector = TestModule.newInjector();
+        CommentedConfigurationNode node = injector.getInstance(Key.get(CommentedConfigurationNode.class, Names.named("internal-config")));
+        final InternalConfig config = new InternalConfig();
+        try {
+            final Field field = InternalConfig.class.getDeclaredField("configVersion");
+            field.setAccessible(true);
+            field.setInt(config, ConfigurationTransformer.LATEST_VERSION + 1);
+        } catch (ReflectiveOperationException ex) {
+            Assertions.fail(ex);
+        }
+        try {
+            node.set(config);
+        } catch (ConfigurateException ex) {
+            Assertions.fail(ex);
+        }
+        Assertions.assertThrows(ProvisionException.class, () -> injector.getInstance(InternalConfig.class));
+    }
+
 
     @Test
     public void testSqliteDatabaseConfigurationValidation() {

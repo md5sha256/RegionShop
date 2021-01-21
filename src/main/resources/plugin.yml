@@ -5,3 +5,9 @@ api-version: 1.16
 prefix: ""
 load: STARTUP
 authors: [ andrewandy ]
+depend:
+  - WorldEdit
+  - WorldGuard
+  - Vault
+softdepend:
+  - FastAsyncWorldEdit

@@ -21,6 +21,7 @@ public class ConfigurationTransformer {
                 configurationNode.set(config);
                 return config;
             } catch (SerializationException ex) {
+                // Should never happen
                 throw new IllegalStateException("Failed to save default options!", ex);
             }
         }
@@ -28,7 +29,7 @@ public class ConfigurationTransformer {
         if (version == -1 || version > LATEST_VERSION) {
             throw new IllegalStateException("Invalid Configuration Version Detected: " + version);
         }
-        if (version != LATEST_VERSION) {
+        if (version < LATEST_VERSION) {
             for (int current = 0; current < LATEST_VERSION; current++) {
                 transform(configurationNode, current);
             }
