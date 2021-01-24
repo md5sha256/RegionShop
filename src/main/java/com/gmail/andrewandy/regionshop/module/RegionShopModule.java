@@ -9,10 +9,10 @@ import com.gmail.andrewandy.regionshop.data.DatabaseType;
 import com.gmail.andrewandy.regionshop.data.JsonDataHandler;
 import com.gmail.andrewandy.regionshop.data.RegionDataHandler;
 import com.gmail.andrewandy.regionshop.data.SqliteDataHandler;
-import com.gmail.andrewandy.regionshop.feature.FeatureFactory;
-import com.gmail.andrewandy.regionshop.feature.FeatureInitializers;
-import com.gmail.andrewandy.regionshop.feature.FeatureManagerImpl;
-import com.gmail.andrewandy.regionshop.feature.RegionFeatureManager;
+import com.gmail.andrewandy.regionshop.region.RegionFactory;
+import com.gmail.andrewandy.regionshop.region.feature.FeatureInitializers;
+import com.gmail.andrewandy.regionshop.region.feature.FeatureManagerImpl;
+import com.gmail.andrewandy.regionshop.region.feature.RegionFeatureManager;
 import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -49,7 +49,9 @@ public class RegionShopModule extends AbstractModule {
         bind(BungeeComponentSerializer.class).annotatedWith(Names.named("legacy")).toInstance(BungeeComponentSerializer.legacy());
         bind(RegionShopConfig.class).to(InternalConfig.class);
         bind(FeatureInitializers.class).asEagerSingleton();
-        install(new FactoryModuleBuilder().implement(RegionFeatureManager.class, FeatureManagerImpl.class).build(FeatureFactory.class));
+        install(new FactoryModuleBuilder()
+                .implement(RegionFeatureManager.class, FeatureManagerImpl.class)
+                .build(RegionFactory.class));
         bind(RegionShopAPI.class).toInstance(api);
     }
 

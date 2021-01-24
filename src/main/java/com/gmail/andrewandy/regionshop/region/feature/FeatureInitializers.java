@@ -1,10 +1,8 @@
-package com.gmail.andrewandy.regionshop.feature;
+package com.gmail.andrewandy.regionshop.region.feature;
 
 import com.gmail.andrewandy.regionshop.region.IRegion;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.Map;
 

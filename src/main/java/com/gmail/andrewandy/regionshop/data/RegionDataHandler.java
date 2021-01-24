@@ -3,6 +3,7 @@ package com.gmail.andrewandy.regionshop.data;
 import com.gmail.andrewandy.regionshop.region.IRegion;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -12,6 +13,8 @@ import java.util.concurrent.CompletableFuture;
 public interface RegionDataHandler {
 
     void init() throws IOException;
+
+    @NotNull ConfigurationLoader<?> newLoader();
 
     @NotNull Optional<? extends ConfigurationNode> getDataFor(@NotNull IRegion region);
 

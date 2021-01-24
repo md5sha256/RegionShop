@@ -15,9 +15,6 @@ public abstract class AbstractRegionDataHandler implements RegionDataHandler {
 
     protected final Map<@NotNull UUID, @NotNull ConfigurationNode> cachedData = new ConcurrentHashMap<>();
 
-    public AbstractRegionDataHandler() {
-    }
-
     @Override
     public @NotNull Optional<? extends ConfigurationNode> getDataFor(@NotNull IRegion region) {
         return Optional.ofNullable(this.cachedData.get(region.getUUID()));

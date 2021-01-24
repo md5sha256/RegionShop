@@ -1,4 +1,4 @@
-package com.gmail.andrewandy.regionshop.feature;
+package com.gmail.andrewandy.regionshop.region.feature;
 
 import java.util.concurrent.CompletableFuture;
 

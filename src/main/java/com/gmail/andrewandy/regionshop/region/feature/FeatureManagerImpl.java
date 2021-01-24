@@ -1,4 +1,4 @@
-package com.gmail.andrewandy.regionshop.feature;
+package com.gmail.andrewandy.regionshop.region.feature;
 
 import com.gmail.andrewandy.regionshop.data.RegionDataHandler;
 import com.gmail.andrewandy.regionshop.region.IRegion;
@@ -9,10 +9,13 @@ import com.google.inject.assistedinject.AssistedInject;
 import io.leangen.geantyref.TypeToken;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import javax.inject.Inject;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
 import java.util.logging.Level;
 
 public class FeatureManagerImpl implements RegionFeatureManager {
@@ -20,20 +23,55 @@ public class FeatureManagerImpl implements RegionFeatureManager {
     private static final TypeToken<MutableClassToInstanceMap<RegionFeature>> MAP_TOKEN =
             new TypeToken<MutableClassToInstanceMap<RegionFeature>>() {
             };
+    private final MutableClassToInstanceMap<RegionFeature> featureMap = MutableClassToInstanceMap.create();
+    private final IRegion region;
+
+    private final RegionDataHandler dataHandler;
 
     @Inject
     private FeatureInitializers initializers;
     @Inject
-    private RegionDataHandler dataHandler;
-    @Inject
     private LogUtils logUtils;
 
-    private final MutableClassToInstanceMap<RegionFeature> featureMap = MutableClassToInstanceMap.create();
-    private final IRegion region;
+    private final ConfigurationLoader<?> loader;
 
     @AssistedInject
-    public FeatureManagerImpl(@Assisted @NotNull IRegion region) {
+    public FeatureManagerImpl(@Assisted @NotNull IRegion region, @NotNull RegionDataHandler dataHandler) {
         this.region = region;
+        this.dataHandler = dataHandler;
+        loader = dataHandler.newLoader();
+    }
+
+    private static String getKeyFor(@NotNull Class<?> clazz) {
+        return clazz.getCanonicalName();
+    }
+
+    @Override
+    public @NotNull ConfigurationNode getOrCreateDataContainer(@NotNull Class<? extends RegionFeature> featureClass) {
+        final ConfigurationNode rootNode =  dataHandler.getOrCreateDataFor(region);
+        final ConfigurationNode sub = rootNode.node(getKeyFor(featureClass));
+        if (!sub.virtual()) {
+            return sub;
+        }
+        final ConfigurationNode newSubNode = loader.createNode();
+        try {
+            sub.set(newSubNode);
+        } catch (SerializationException ex) {
+            logUtils.logException(ex);
+            logUtils.log(Level.SEVERE, "<red>Failed to initialize sub container for feature: " + featureClass.getCanonicalName());
+        }
+        return newSubNode;
+    }
+
+    @Override
+    public @NotNull Optional<@NotNull ConfigurationNode> getDataContainer(@NotNull Class<? extends RegionFeature> featureClass) {
+        final Optional<? extends ConfigurationNode> root = dataHandler.getDataFor(region);
+        if (!root.isPresent()) {
+            return Optional.empty();
+        }
+        final ConfigurationNode rootNode = root.get();
+        final ConfigurationNode sub = rootNode.node(getKeyFor(featureClass));
+        return sub.virtual() ? Optional.empty() : Optional.of(sub);
     }
 
     @Override

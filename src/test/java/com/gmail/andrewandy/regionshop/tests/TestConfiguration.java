@@ -1,4 +1,4 @@
-package com.gmail.andrewandy.regionshop;
+package com.gmail.andrewandy.regionshop.tests;
 
 import com.gmail.andrewandy.regionshop.configuration.ConfigurationTransformer;
 import com.gmail.andrewandy.regionshop.configuration.DatabaseOptions;
@@ -16,15 +16,14 @@ import com.google.inject.ProvisionException;
 import com.google.inject.name.Names;
 import com.zaxxer.hikari.pool.HikariPool;
 import io.leangen.geantyref.TypeToken;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
-import scala.Int;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +36,8 @@ public class TestConfiguration {
 
     private static File dummyDir;
 
-    @BeforeClass
-    public static void init() {
+    @BeforeAll
+    public static void load() {
         try {
             dummyDir = Files.createTempDirectory(UUID.randomUUID().toString()).toFile();
             Class.forName("org.sqlite.SQLiteDataSource");

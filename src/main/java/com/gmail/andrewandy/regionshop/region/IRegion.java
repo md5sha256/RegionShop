@@ -1,6 +1,6 @@
 package com.gmail.andrewandy.regionshop.region;
 
-import com.gmail.andrewandy.regionshop.feature.RegionFeatureManager;
+import com.gmail.andrewandy.regionshop.region.feature.RegionFeatureManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;

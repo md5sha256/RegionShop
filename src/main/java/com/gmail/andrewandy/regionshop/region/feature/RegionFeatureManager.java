@@ -1,11 +1,20 @@
-package com.gmail.andrewandy.regionshop.feature;
+package com.gmail.andrewandy.regionshop.region.feature;
 
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.ConfigurationNode;
 
 import java.util.Optional;
 import java.util.Set;
 
 public interface RegionFeatureManager {
+
+    @NotNull Optional<@NotNull ConfigurationNode> getDataContainer(@NotNull Class<? extends RegionFeature> featureClass);
+
+    @NotNull ConfigurationNode getOrCreateDataContainer(@NotNull Class<? extends RegionFeature> featureClass);
+
+    default boolean hasData(@NotNull Class<? extends RegionFeature> featureClass) {
+        return getDataContainer(featureClass).isPresent();
+    }
 
     @NotNull <T extends RegionFeature> Optional<@NotNull T> getFeature(@NotNull Class<T> featureClass);
 
