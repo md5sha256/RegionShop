@@ -4,10 +4,10 @@ import com.gmail.andrewandy.regionshop.configuration.InternalConfig;
 import com.gmail.andrewandy.regionshop.configuration.RegionShopConfig;
 import com.gmail.andrewandy.regionshop.data.DatabaseType;
 import com.gmail.andrewandy.regionshop.data.RegionDataHandler;
-import com.gmail.andrewandy.regionshop.region.feature.FeatureFactory;
-import com.gmail.andrewandy.regionshop.region.feature.FeatureInitializers;
 import com.gmail.andrewandy.regionshop.module.BukkitModule;
 import com.gmail.andrewandy.regionshop.module.RegionShopModule;
+import com.gmail.andrewandy.regionshop.region.RegionFactory;
+import com.gmail.andrewandy.regionshop.region.feature.FeatureInitializers;
 import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -24,7 +24,7 @@ public class RegionShop implements RegionShopAPI {
     private LogUtils logUtils;
     private RegionShopConfig config;
     private RegionDataHandler dataHandler;
-    private FeatureFactory featureFactory;
+    private RegionFactory regionFactory;
     private FeatureInitializers featureInitializers;
 
     private Injector injector;
@@ -45,7 +45,7 @@ public class RegionShop implements RegionShopAPI {
         this.logUtils.log(Level.INFO, "<green>Using " + dataHandler.getClass() + " to store region data</green>");
 
         // Setup api stuff
-        this.featureFactory = this.injector.getInstance(FeatureFactory.class);
+        this.regionFactory = this.injector.getInstance(RegionFactory.class);
         this.featureInitializers = this.injector.getInstance(FeatureInitializers.class);
 
         // All done!
@@ -73,7 +73,7 @@ public class RegionShop implements RegionShopAPI {
         this.logUtils = null;
         this.dataHandler = null;
         this.featureInitializers = null;
-        this.featureFactory = null;
+        this.regionFactory = null;
     }
 
     @Override
@@ -82,8 +82,8 @@ public class RegionShop implements RegionShopAPI {
     }
 
     @Override
-    public @NotNull FeatureFactory getFeatureFactory() {
-        return Objects.requireNonNull(featureFactory, "Cannot access FeatureFactory: Plugin is either disabled or has yet to be initialized!");
+    public @NotNull RegionFactory getRegionFactory() {
+        return Objects.requireNonNull(regionFactory, "Cannot access RegionFactory: Plugin is either disabled or has yet to be initialized!");
     }
 
     @Override

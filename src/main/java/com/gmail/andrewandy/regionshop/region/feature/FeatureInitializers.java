@@ -25,7 +25,7 @@ public class FeatureInitializers {
     }
 
     @FunctionalInterface
-    private interface Initializer<T extends RegionFeature> {
+    public interface Initializer<T extends RegionFeature> {
 
         @NotNull T newInstance(@NotNull IRegion region);
 
