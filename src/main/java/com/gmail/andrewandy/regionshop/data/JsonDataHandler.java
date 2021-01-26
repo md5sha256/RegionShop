@@ -11,6 +11,8 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
+import org.spongepowered.configurate.serialize.TypeSerializerCollection;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -205,5 +207,10 @@ public final class JsonDataHandler extends AbstractRegionDataHandler {
             }
         }).execute();
         return completableFuture;
+    }
+
+    @Override
+    public @NotNull ConfigurationLoader<?> newLoader() {
+        return GsonConfigurationLoader.builder().lenient(true).defaultOptions(configurationOptions -> configurationOptions.serializers(getSerializers())).build();
     }
 }

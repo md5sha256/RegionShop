@@ -13,6 +13,7 @@ import com.gmail.andrewandy.regionshop.region.RegionFactory;
 import com.gmail.andrewandy.regionshop.region.feature.FeatureInitializers;
 import com.gmail.andrewandy.regionshop.region.feature.FeatureManagerImpl;
 import com.gmail.andrewandy.regionshop.region.feature.RegionFeatureManager;
+import com.gmail.andrewandy.regionshop.region.feature.builtins.BuiltinFeatures;
 import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -49,6 +50,7 @@ public class RegionShopModule extends AbstractModule {
         bind(BungeeComponentSerializer.class).annotatedWith(Names.named("legacy")).toInstance(BungeeComponentSerializer.legacy());
         bind(RegionShopConfig.class).to(InternalConfig.class);
         bind(FeatureInitializers.class).asEagerSingleton();
+        bind(BuiltinFeatures.class).asEagerSingleton();
         install(new FactoryModuleBuilder()
                 .implement(RegionFeatureManager.class, FeatureManagerImpl.class)
                 .build(RegionFactory.class));

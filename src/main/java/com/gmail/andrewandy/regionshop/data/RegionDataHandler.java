@@ -4,6 +4,7 @@ import com.gmail.andrewandy.regionshop.region.IRegion;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
+import org.spongepowered.configurate.serialize.TypeSerializerCollection;
 
 import java.io.IOException;
 import java.util.Optional;
@@ -29,5 +30,7 @@ public interface RegionDataHandler {
     void flushChanges() throws IOException;
 
     @NotNull CompletableFuture<Void> flushChangesAsync();
+
+    void addTypeSerializers(@NotNull TypeSerializerCollection collection);
 
 }

@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
 
 import javax.sql.rowset.serial.SerialBlob;
 import java.io.*;
@@ -203,6 +204,11 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
         return completableFuture;
     }
 
+    @Override
+    public @NotNull ConfigurationLoader<?> newLoader() {
+        return GsonConfigurationLoader.builder().lenient(true).defaultOptions(configurationOptions -> configurationOptions.serializers(getSerializers())).build();
+    }
+
     private PreparedStatement statementWriteData(@NotNull Connection connection, @NotNull UUID target, byte[] data) throws SQLException {
         final String sql = "INSERT INTO " + TABLE_NAME + " (" + PRIMARY_KEY + ", " + DATA_KEY + ") VALUES(?,?) ON CONFLICT (" + PRIMARY_KEY + ") DO UPDATE SET " + PRIMARY_KEY + "=?, " + DATA_KEY + "=?";
         final PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -216,7 +222,6 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
 
     private PreparedStatement statementUpdateDataBatch(@NotNull Connection connection, @NotNull Map<UUID, byte[]> targets) throws SQLException {
         final String sql = "INSERT INTO " + TABLE_NAME + " (" + PRIMARY_KEY + ", " + DATA_KEY + ") VALUES(?,?) ON CONFLICT (" + PRIMARY_KEY + ") DO UPDATE SET " + PRIMARY_KEY + "=?, " + DATA_KEY + "=?";
-        System.out.println(sql);
         final PreparedStatement preparedStatement = connection.prepareStatement(sql);
         for (Map.Entry<UUID, byte[]> entry : targets.entrySet()) {
             final UUID target = entry.getKey();

@@ -44,6 +44,8 @@ public class RegionShop implements RegionShopAPI {
         this.dataHandler = this.injector.getInstance(RegionDataHandler.class);
         this.logUtils.log(Level.INFO, "<green>Using " + dataHandler.getClass() + " to store region data</green>");
 
+        // FIXME call BuiltinFeatures#init
+
         // Setup api stuff
         this.regionFactory = this.injector.getInstance(RegionFactory.class);
         this.featureInitializers = this.injector.getInstance(FeatureInitializers.class);

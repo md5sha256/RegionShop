@@ -1,5 +1,6 @@
 package com.gmail.andrewandy.regionshop.region.feature.builtins;
 
+import com.gmail.andrewandy.regionshop.data.RegionDataHandler;
 import com.gmail.andrewandy.regionshop.region.feature.FeatureInitializers;
 import com.gmail.andrewandy.regionshop.region.feature.FeatureManagerImpl;
 import com.gmail.andrewandy.regionshop.region.feature.builtins.access.JsonAccessFeatureImpl;
@@ -14,6 +15,8 @@ public class BuiltinFeatures {
     private FeatureInitializers initializers;
     @Inject
     private FeatureFactory featureFactory;
+    @Inject
+    private RegionDataHandler dataHandler;
 
 
     public void init() {
@@ -23,7 +26,7 @@ public class BuiltinFeatures {
 
     private void initFeatureAccess() {
         initializers.registerInitializer(JsonAccessFeatureImpl.class, featureFactory::newJsonAccessFeature);
-
+        // FIXME register serializer which wraps AccessPrivilege classes.
     }
 
     private void initFeatureOwnership() {
