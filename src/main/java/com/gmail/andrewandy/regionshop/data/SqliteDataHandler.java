@@ -204,11 +204,6 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
         return completableFuture;
     }
 
-    @Override
-    public @NotNull ConfigurationLoader<?> newLoader() {
-        return GsonConfigurationLoader.builder().lenient(true).defaultOptions(configurationOptions -> configurationOptions.serializers(getSerializers())).build();
-    }
-
     private PreparedStatement statementWriteData(@NotNull Connection connection, @NotNull UUID target, byte[] data) throws SQLException {
         final String sql = "INSERT INTO " + TABLE_NAME + " (" + PRIMARY_KEY + ", " + DATA_KEY + ") VALUES(?,?) ON CONFLICT (" + PRIMARY_KEY + ") DO UPDATE SET " + PRIMARY_KEY + "=?, " + DATA_KEY + "=?";
         final PreparedStatement preparedStatement = connection.prepareStatement(sql);

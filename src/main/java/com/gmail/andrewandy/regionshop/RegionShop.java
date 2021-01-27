@@ -8,6 +8,7 @@ import com.gmail.andrewandy.regionshop.module.BukkitModule;
 import com.gmail.andrewandy.regionshop.module.RegionShopModule;
 import com.gmail.andrewandy.regionshop.region.RegionFactory;
 import com.gmail.andrewandy.regionshop.region.feature.FeatureInitializers;
+import com.gmail.andrewandy.regionshop.region.feature.builtins.BuiltinFeatures;
 import com.gmail.andrewandy.regionshop.util.LogUtils;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -44,7 +45,8 @@ public class RegionShop implements RegionShopAPI {
         this.dataHandler = this.injector.getInstance(RegionDataHandler.class);
         this.logUtils.log(Level.INFO, "<green>Using " + dataHandler.getClass() + " to store region data</green>");
 
-        // FIXME call BuiltinFeatures#init
+        final BuiltinFeatures features = this.injector.getInstance(BuiltinFeatures.class);
+        features.init();
 
         // Setup api stuff
         this.regionFactory = this.injector.getInstance(RegionFactory.class);

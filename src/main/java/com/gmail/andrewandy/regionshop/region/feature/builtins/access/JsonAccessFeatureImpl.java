@@ -23,8 +23,6 @@ public class JsonAccessFeatureImpl extends AccessFeature {
     private TaskChainFactory factory;
     private JsonAccessDataImpl accessData = new JsonAccessDataImpl();
 
-    private ConfigurationLoader<?> configurationLoader;
-
 
     @AssistedInject
     public JsonAccessFeatureImpl(@Assisted IRegion region, @NotNull LogUtils logUtils) {
@@ -59,10 +57,9 @@ public class JsonAccessFeatureImpl extends AccessFeature {
 
     @Override
     public boolean saveData() {
-        final ConfigurationNode node = this.configurationLoader.createNode();
+        final ConfigurationNode node = this.container.node(DATA_KEY);
         try {
             node.set(this.accessData);
-            this.container.node(DATA_KEY).set(node);
             return true;
         } catch (SerializationException ex) {
             logUtils.logException(ex);

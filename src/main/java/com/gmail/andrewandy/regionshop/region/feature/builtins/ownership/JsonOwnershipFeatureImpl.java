@@ -23,7 +23,6 @@ public final class JsonOwnershipFeatureImpl implements RegionFeature {
     private final ConfigurationNode container;
     private boolean deleted;
     private OwnershipData ownershipData;
-    private ConfigurationLoader<?> configurationLoader;
 
 
     @AssistedInject
@@ -86,10 +85,9 @@ public final class JsonOwnershipFeatureImpl implements RegionFeature {
 
     @Override
     public boolean saveData() {
-        final ConfigurationNode node = this.configurationLoader.createNode();
+        final ConfigurationNode node = this.container.node(DATA_KEY);
         try {
             node.set(this.ownershipData);
-            this.container.node(DATA_KEY, node);
             return true;
         } catch (SerializationException ex) {
             logUtils.logException(ex);

@@ -15,8 +15,6 @@ public interface RegionDataHandler {
 
     void init() throws IOException;
 
-    @NotNull ConfigurationLoader<?> newLoader();
-
     @NotNull Optional<? extends ConfigurationNode> getDataFor(@NotNull IRegion region);
 
     @NotNull Optional<? extends ConfigurationNode> getDataFor(@NotNull UUID region);
@@ -32,5 +30,7 @@ public interface RegionDataHandler {
     @NotNull CompletableFuture<Void> flushChangesAsync();
 
     void addTypeSerializers(@NotNull TypeSerializerCollection collection);
+
+    @NotNull TypeSerializerCollection getRegisteredTypeSerializers();
 
 }

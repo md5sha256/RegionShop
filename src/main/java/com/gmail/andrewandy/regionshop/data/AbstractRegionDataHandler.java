@@ -23,7 +23,8 @@ public abstract class AbstractRegionDataHandler implements RegionDataHandler {
         this.serializers = collection.childBuilder().registerAll(collection).build();
     }
 
-    protected @NotNull TypeSerializerCollection getSerializers() {
+    @Override
+    public @NotNull TypeSerializerCollection getRegisteredTypeSerializers() {
         return serializers;
     }
 

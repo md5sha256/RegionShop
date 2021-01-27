@@ -33,13 +33,10 @@ public class FeatureManagerImpl implements RegionFeatureManager {
     @Inject
     private LogUtils logUtils;
 
-    private final ConfigurationLoader<?> loader;
-
     @AssistedInject
     public FeatureManagerImpl(@Assisted @NotNull IRegion region, @NotNull RegionDataHandler dataHandler) {
         this.region = region;
         this.dataHandler = dataHandler;
-        loader = dataHandler.newLoader();
     }
 
     private static String getKeyFor(@NotNull Class<?> clazz) {
@@ -49,18 +46,7 @@ public class FeatureManagerImpl implements RegionFeatureManager {
     @Override
     public @NotNull ConfigurationNode getOrCreateDataContainer(@NotNull Class<? extends RegionFeature> featureClass) {
         final ConfigurationNode rootNode =  dataHandler.getOrCreateDataFor(region);
-        final ConfigurationNode sub = rootNode.node(getKeyFor(featureClass));
-        if (!sub.virtual()) {
-            return sub;
-        }
-        final ConfigurationNode newSubNode = loader.createNode();
-        try {
-            sub.set(newSubNode);
-        } catch (SerializationException ex) {
-            logUtils.logException(ex);
-            logUtils.log(Level.SEVERE, "<red>Failed to initialize sub container for feature: " + featureClass.getCanonicalName());
-        }
-        return newSubNode;
+        return rootNode.node(getKeyFor(featureClass));
     }
 
     @Override
