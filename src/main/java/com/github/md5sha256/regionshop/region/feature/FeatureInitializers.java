@@ -1,0 +1,34 @@
+package com.github.md5sha256.regionshop.region.feature;
+
+import com.github.md5sha256.regionshop.region.IRegion;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class FeatureInitializers {
+
+    private final Map<Class<?>, Initializer<?>> initializerMap = new HashMap<>();
+
+    public <T extends RegionFeature> void registerInitializer(@NotNull Class<T> clazz, @NotNull Initializer<T> initializer) {
+        initializerMap.put(clazz, initializer);
+    }
+
+    public <T extends RegionFeature> @NotNull T newInstance(@NotNull Class<T> clazz, @NotNull IRegion region)
+            throws UnsupportedOperationException {
+        @SuppressWarnings("rawtypes")
+        final Initializer initializer = initializerMap.get(clazz);
+        if (initializer == null) {
+            throw new UnsupportedOperationException("No initializer present for class: " + clazz.getCanonicalName());
+        }
+        return clazz.cast(initializer.newInstance(region));
+    }
+
+    @FunctionalInterface
+    public interface Initializer<T extends RegionFeature> {
+
+        @NotNull T newInstance(@NotNull IRegion region);
+
+    }
+
+}
