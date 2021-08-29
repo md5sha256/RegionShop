@@ -7,7 +7,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.Optional;
@@ -29,7 +28,7 @@ public final class JsonOwnershipFeatureImpl implements RegionFeature {
     public JsonOwnershipFeatureImpl(@Assisted IRegion region, @NotNull LogUtils logUtils) {
         this.logUtils = logUtils;
         this.region = region;
-        this.container = region.getFeatureManager().getOrCreateDataContainer(JsonOwnershipFeatureImpl.class);
+        this.container = region.featureManager().getOrCreateDataContainer(JsonOwnershipFeatureImpl.class);
         loadData();
     }
 
@@ -74,7 +73,7 @@ public final class JsonOwnershipFeatureImpl implements RegionFeature {
             this.ownershipData = node.get(JsonOwnershipDataImpl.class);
         } catch (SerializationException ex) {
             logUtils.logException(ex);
-            logUtils.log(Level.SEVERE, "<red>Failed to deserialize ownership data for region: " + region.getRegionID());
+            logUtils.log(Level.SEVERE, "<red>Failed to deserialize ownership data for region: " + region.regionId());
         }
     }
 
@@ -91,7 +90,7 @@ public final class JsonOwnershipFeatureImpl implements RegionFeature {
             return true;
         } catch (SerializationException ex) {
             logUtils.logException(ex);
-            logUtils.log(Level.WARNING, "<yellow>Failed to save ownership data for region: " + region.getRegionID());
+            logUtils.log(Level.WARNING, "<yellow>Failed to save ownership data for region: " + region.regionId());
             return false;
         }
     }

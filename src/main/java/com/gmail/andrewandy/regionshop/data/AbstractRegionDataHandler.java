@@ -30,7 +30,7 @@ public abstract class AbstractRegionDataHandler implements RegionDataHandler {
 
     @Override
     public @NotNull Optional<? extends ConfigurationNode> getDataFor(@NotNull IRegion region) {
-        return Optional.ofNullable(this.cachedData.get(region.getUUID()));
+        return Optional.ofNullable(this.cachedData.get(region.uuid()));
     }
 
     @Override
@@ -45,7 +45,7 @@ public abstract class AbstractRegionDataHandler implements RegionDataHandler {
 
     @Override
     public void removeData(@NotNull IRegion region) {
-        this.cachedData.remove(region.getUUID());
+        this.cachedData.remove(region.uuid());
     }
 
     @Override

@@ -9,7 +9,6 @@ import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import java.util.UUID;
@@ -27,7 +26,7 @@ public class JsonAccessFeatureImpl extends AccessFeature {
     @AssistedInject
     public JsonAccessFeatureImpl(@Assisted IRegion region, @NotNull LogUtils logUtils) {
         super(region, logUtils);
-        this.container = region.getFeatureManager().getOrCreateDataContainer(JsonOwnershipFeatureImpl.class);
+        this.container = region.featureManager().getOrCreateDataContainer(JsonOwnershipFeatureImpl.class);
         loadData();
     }
 
@@ -51,7 +50,7 @@ public class JsonAccessFeatureImpl extends AccessFeature {
             this.accessData = node.get(JsonAccessDataImpl.class);
         } catch (SerializationException ex) {
             logUtils.logException(ex);
-            logUtils.log(Level.SEVERE, "<red>Failed to deserialize access data for region: " + region.getRegionID());
+            logUtils.log(Level.SEVERE, "<red>Failed to deserialize access data for region: " + region.regionId());
         }
     }
 
@@ -63,7 +62,7 @@ public class JsonAccessFeatureImpl extends AccessFeature {
             return true;
         } catch (SerializationException ex) {
             logUtils.logException(ex);
-            logUtils.log(Level.WARNING, "<yellow>Failed to save access data for region: " + region.getRegionID());
+            logUtils.log(Level.WARNING, "<yellow>Failed to save access data for region: " + region.regionId());
             return false;
         }
     }

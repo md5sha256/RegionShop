@@ -2,9 +2,13 @@ package com.gmail.andrewandy.regionshop.region;
 
 import com.gmail.andrewandy.regionshop.region.feature.RegionFeature;
 import com.gmail.andrewandy.regionshop.region.feature.RegionFeatureManager;
+import com.gmail.andrewandy.regionshop.region.settings.GroupedSettingAccessor;
+import com.gmail.andrewandy.regionshop.region.settings.RegionGroupRegistry;
+import com.gmail.andrewandy.regionshop.region.settings.SettingAccessor;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import org.jetbrains.annotations.NotNull;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -17,7 +21,10 @@ public class BaseRegion implements Serializable, IRegion {
     private final String world;
     private final String regionID;
     private final String displayName;
-    private final RegionFeatureManager featureManager;
+    private transient final RegionFeatureManager featureManager;
+    private transient final RegionGroupRegistry groupRegistry;
+    private transient final SettingAccessor settingAccessor;
+
     private transient CompletableFuture<Void> deletionTask;
     private transient boolean deleted;
 
@@ -25,9 +32,11 @@ public class BaseRegion implements Serializable, IRegion {
     public BaseRegion(@NotNull @Assisted("world") String world,
                       @NotNull @Assisted("regionID") String regionID,
                       @NotNull @Assisted("displayName") String displayName,
-                      @NotNull RegionFactory featureFactory) {
-
-        this(UUID.randomUUID(), world, regionID, displayName, featureFactory);
+                      @NotNull RegionFactory regionFactory,
+                      @NotNull RegionGroupRegistry regionGroupRegistry,
+                      @NotNull ConfigurationLoader<?> configurationLoader
+    ) {
+        this(UUID.randomUUID(), world, regionID, displayName, regionFactory, regionGroupRegistry, configurationLoader);
     }
 
     @AssistedInject
@@ -35,13 +44,18 @@ public class BaseRegion implements Serializable, IRegion {
                       @NotNull @Assisted("world") String world,
                       @NotNull @Assisted("regionID") String regionID,
                       @NotNull @Assisted("displayName") String displayName,
-                      @NotNull RegionFactory regionFactory) {
+                      @NotNull RegionFactory regionFactory,
+                      @NotNull RegionGroupRegistry regionGroupRegistry,
+                      @NotNull ConfigurationLoader<?> configurationLoader
+                      ) {
 
         this.uuid = Objects.requireNonNull(uuid);
         this.world = Objects.requireNonNull(world, "world cannot be null!");
         this.regionID = Objects.requireNonNull(regionID, "regionID cannot be null!");
         this.displayName = Objects.requireNonNull(displayName, "displayName cannot be null!");
-        featureManager = regionFactory.newFeatureManager(this);
+        this.featureManager = regionFactory.newFeatureManager(this);
+        this.groupRegistry = regionGroupRegistry;
+        this.settingAccessor = new GroupedSettingAccessor(() -> regionGroupRegistry.groups(this.uuid), configurationLoader.createNode());
     }
 
     protected void delete() {
@@ -52,8 +66,7 @@ public class BaseRegion implements Serializable, IRegion {
     }
 
     @Override
-    public @NotNull
-    synchronized CompletableFuture<Void> queueDeletion() {
+    public @NotNull synchronized CompletableFuture<Void> queueDeletion() {
         if (this.deleted) {
             return this.deletionTask;
         }
@@ -63,32 +76,37 @@ public class BaseRegion implements Serializable, IRegion {
     }
 
     @Override
-    public @NotNull UUID getUUID() {
+    public @NotNull UUID uuid() {
         return this.uuid;
     }
 
     @Override
-    public boolean isDeleted() {
-        return deleted;
+    public boolean deleted() {
+        return this.deleted;
     }
 
     @Override
-    public @NotNull String getWorld() {
-        return world;
+    public @NotNull String world() {
+        return this.world;
     }
 
     @Override
-    public @NotNull String getRegionID() {
-        return regionID;
+    public @NotNull String regionId() {
+        return this.regionID;
     }
 
     @Override
-    public @NotNull String getDisplayNameRaw() {
-        return displayName;
+    public @NotNull String displayNameRaw() {
+        return this.displayName;
     }
 
     @Override
-    public @NotNull RegionFeatureManager getFeatureManager() {
-        return featureManager;
+    public @NotNull RegionFeatureManager featureManager() {
+        return this.featureManager;
+    }
+
+    @Override
+    public @NotNull SettingAccessor settingAccessor() {
+        return this.settingAccessor;
     }
 }

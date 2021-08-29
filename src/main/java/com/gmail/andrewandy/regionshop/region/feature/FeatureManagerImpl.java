@@ -9,7 +9,6 @@ import com.google.inject.assistedinject.AssistedInject;
 import io.leangen.geantyref.TypeToken;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
-import org.spongepowered.configurate.loader.ConfigurationLoader;
 import org.spongepowered.configurate.serialize.SerializationException;
 
 import javax.inject.Inject;
@@ -105,7 +104,7 @@ public class FeatureManagerImpl implements RegionFeatureManager {
             }
         } catch (SerializationException ex) {
             this.logUtils.logException(ex);
-            this.logUtils.log(Level.SEVERE, "<red>Failed to deserialize feature data for region: " + region.getRegionID());
+            this.logUtils.log(Level.SEVERE, "<red>Failed to deserialize feature data for region: " + region.regionId());
         }
     }
 }

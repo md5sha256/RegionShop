@@ -1,6 +1,7 @@
 package com.gmail.andrewandy.regionshop.region;
 
 import com.gmail.andrewandy.regionshop.region.feature.RegionFeatureManager;
+import com.gmail.andrewandy.regionshop.region.settings.SettingAccessor;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
@@ -8,18 +9,20 @@ import java.util.concurrent.CompletableFuture;
 
 public interface IRegion {
 
-    @NotNull UUID getUUID();
+    @NotNull UUID uuid();
 
-    boolean isDeleted();
+    boolean deleted();
 
     @NotNull CompletableFuture<Void> queueDeletion();
 
-    @NotNull String getWorld();
+    @NotNull String world();
 
-    @NotNull String getRegionID();
+    @NotNull String regionId();
 
-    @NotNull String getDisplayNameRaw();
+    @NotNull String displayNameRaw();
 
-    @NotNull RegionFeatureManager getFeatureManager();
+    @NotNull RegionFeatureManager featureManager();
+
+    @NotNull SettingAccessor settingAccessor();
 
 }

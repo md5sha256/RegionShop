@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
-import org.spongepowered.configurate.loader.ConfigurationLoader;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -54,7 +53,7 @@ public final class JsonDataHandler extends AbstractRegionDataHandler {
             return optional.get();
         }
         final ConfigurationNode node = EMPTY_LOADER.createNode();
-        super.cachedData.put(region.getUUID(), node);
+        super.cachedData.put(region.uuid(), node);
         return node;
     }
 
@@ -118,7 +117,7 @@ public final class JsonDataHandler extends AbstractRegionDataHandler {
     /**
      * Thread-safe method to read and cached all data into the data handler.
      *
-     * @return Returns a copy of the cached data, with the Keys representing the {@link IRegion#getUUID()} and values representing
+     * @return Returns a copy of the cached data, with the Keys representing the {@link IRegion#uuid()} and values representing
      * the data container.
      */
     @Override

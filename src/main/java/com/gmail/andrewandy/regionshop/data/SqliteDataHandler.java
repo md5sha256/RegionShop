@@ -10,7 +10,6 @@ import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurateException;
 import org.spongepowered.configurate.ConfigurationNode;
 import org.spongepowered.configurate.gson.GsonConfigurationLoader;
-import org.spongepowered.configurate.loader.ConfigurationLoader;
 
 import javax.sql.rowset.serial.SerialBlob;
 import java.io.*;
@@ -60,7 +59,7 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
             return optional.get();
         }
         final ConfigurationNode node = EMPTY_LOADER.createNode();
-        super.cachedData.put(region.getUUID(), node);
+        super.cachedData.put(region.uuid(), node);
         return node;
     }
 
@@ -73,7 +72,7 @@ public final class SqliteDataHandler extends AbstractRegionDataHandler {
     @Override
     public void removeData(@NotNull IRegion region) {
         super.removeData(region);
-        removed.add(region.getUUID());
+        removed.add(region.uuid());
     }
 
     @Override
