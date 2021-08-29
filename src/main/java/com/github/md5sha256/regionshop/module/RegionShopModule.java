@@ -2,20 +2,23 @@ package com.github.md5sha256.regionshop.module;
 
 import com.github.md5sha256.regionshop.RegionShopAPI;
 import com.github.md5sha256.regionshop.configuration.ConfigurationTransformer;
+import com.github.md5sha256.regionshop.configuration.DatabaseOptions;
+import com.github.md5sha256.regionshop.configuration.InternalConfig;
+import com.github.md5sha256.regionshop.configuration.RegionShopConfig;
 import com.github.md5sha256.regionshop.data.DatabaseType;
 import com.github.md5sha256.regionshop.data.JsonDataHandler;
 import com.github.md5sha256.regionshop.data.RegionDataHandler;
 import com.github.md5sha256.regionshop.data.SqliteDataHandler;
+import com.github.md5sha256.regionshop.region.RegionFactory;
 import com.github.md5sha256.regionshop.region.feature.FeatureInitializers;
 import com.github.md5sha256.regionshop.region.feature.FeatureManagerImpl;
-import com.github.md5sha256.regionshop.region.feature.builtins.BuiltinFeatures;
-import com.github.md5sha256.regionshop.region.feature.builtins.access.AccessDataSerializer;
-import com.github.md5sha256.regionshop.util.LogUtils;
-import com.github.md5sha256.regionshop.configuration.DatabaseOptions;
-import com.github.md5sha256.regionshop.configuration.InternalConfig;
-import com.github.md5sha256.regionshop.configuration.RegionShopConfig;
-import com.github.md5sha256.regionshop.region.RegionFactory;
 import com.github.md5sha256.regionshop.region.feature.RegionFeatureManager;
+import com.github.md5sha256.regionshop.region.feature.builtins.BuiltinFeatures;
+import com.github.md5sha256.regionshop.region.feature.builtins.FeatureFactory;
+import com.github.md5sha256.regionshop.region.feature.builtins.access.AccessDataSerializer;
+import com.github.md5sha256.regionshop.region.settings.RegionGroupRegistry;
+import com.github.md5sha256.regionshop.region.settings.RegionGroupRegistryImpl;
+import com.github.md5sha256.regionshop.util.LogUtils;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
@@ -28,6 +31,7 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
+import org.spongepowered.configurate.loader.ConfigurationLoader;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,9 +53,11 @@ public class RegionShopModule extends AbstractModule {
         bind(AccessDataSerializer.class).asEagerSingleton();
         bind(FeatureInitializers.class).asEagerSingleton();
         bind(BuiltinFeatures.class).asEagerSingleton();
+        bind(RegionGroupRegistry.class).to(RegionGroupRegistryImpl.class).in(Singleton.class);
         install(new FactoryModuleBuilder()
                 .implement(RegionFeatureManager.class, FeatureManagerImpl.class)
                 .build(RegionFactory.class));
+        install(new FactoryModuleBuilder().build(FeatureFactory.class));
         bind(RegionShopAPI.class).toInstance(api);
     }
 
@@ -71,6 +77,13 @@ public class RegionShopModule extends AbstractModule {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+    }
+
+    @Provides
+    @Singleton
+    @Named("region-data")
+    public @NotNull ConfigurationLoader<?> provideRegionDataLoader() {
+        return HoconConfigurationLoader.builder().build();
     }
 
     @Provides

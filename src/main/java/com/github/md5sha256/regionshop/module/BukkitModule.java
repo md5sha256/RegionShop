@@ -7,6 +7,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -16,7 +17,7 @@ public class BukkitModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(RegionShopPlugin.class).toProvider(() -> RegionShopPlugin.getPlugin(RegionShopPlugin.class));
+        bind(RegionShopPlugin.class).toProvider(() -> JavaPlugin.getPlugin(RegionShopPlugin.class));
     }
 
     @Provides

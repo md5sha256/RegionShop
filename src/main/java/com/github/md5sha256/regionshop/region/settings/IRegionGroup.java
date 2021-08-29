@@ -7,6 +7,8 @@ import java.util.UUID;
 
 public interface IRegionGroup extends Comparable<IRegionGroup> {
 
+    @NotNull String id();
+
     @NotNull Set<@NotNull UUID> members();
 
     void addMember(@NotNull UUID uuid);

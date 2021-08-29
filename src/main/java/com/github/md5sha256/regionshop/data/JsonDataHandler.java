@@ -23,7 +23,7 @@ import java.util.logging.Level;
 
 public final class JsonDataHandler extends AbstractRegionDataHandler {
 
-    private static final String INDEX_NAME = "index.txt";
+    private static final String INDEX_NAME = "index.json";
     private static final String DATA_DIR_NAME = "data";
     private static final GsonConfigurationLoader EMPTY_LOADER = GsonConfigurationLoader.builder().lenient(true).build();
 

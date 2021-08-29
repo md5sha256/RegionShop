@@ -3,15 +3,15 @@ package com.github.md5sha256.regionshop.region.settings;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.ConfigurationNode;
 
+import java.util.NavigableSet;
 import java.util.Optional;
-import java.util.TreeSet;
 import java.util.function.Supplier;
 
 public class GroupedSettingAccessor extends BaseSettingAccessor implements SettingAccessor {
 
-    private final Supplier<TreeSet<IRegionGroup>> groups;
+    private final Supplier<NavigableSet<IRegionGroup>> groups;
 
-    public GroupedSettingAccessor(@NotNull Supplier<TreeSet<IRegionGroup>> groups,
+    public GroupedSettingAccessor(@NotNull Supplier<NavigableSet<IRegionGroup>> groups,
                                   @NotNull ConfigurationNode root) {
         super(root);
         this.groups = groups;

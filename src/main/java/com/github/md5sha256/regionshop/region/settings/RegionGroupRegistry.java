@@ -2,13 +2,13 @@ package com.github.md5sha256.regionshop.region.settings;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.NavigableSet;
 import java.util.Optional;
-import java.util.TreeSet;
 import java.util.UUID;
 
 public interface RegionGroupRegistry {
 
-    @NotNull TreeSet<IRegionGroup> groups(@NotNull UUID region);
+    @NotNull NavigableSet<IRegionGroup> groups(@NotNull UUID region);
 
     @NotNull Optional<IRegionGroup> getById(@NotNull String id);
 
@@ -16,6 +16,8 @@ public interface RegionGroupRegistry {
 
     void removeGroup(@NotNull IRegionGroup regionGroup);
 
-    void removeRegionFromGroup(@NotNull UUID region);
+    void removeRegionFromGroup(@NotNull UUID region, @NotNull IRegionGroup regionGroup);
+
+    @NotNull IRegionGroup createGroup(@NotNull String id);
 
 }

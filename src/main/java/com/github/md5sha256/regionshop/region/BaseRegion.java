@@ -1,5 +1,6 @@
 package com.github.md5sha256.regionshop.region;
 
+import com.github.md5sha256.regionshop.data.RegionDataHandler;
 import com.github.md5sha256.regionshop.region.feature.RegionFeature;
 import com.github.md5sha256.regionshop.region.settings.GroupedSettingAccessor;
 import com.github.md5sha256.regionshop.region.settings.RegionGroupRegistry;
@@ -7,6 +8,7 @@ import com.github.md5sha256.regionshop.region.feature.RegionFeatureManager;
 import com.github.md5sha256.regionshop.region.settings.SettingAccessor;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.name.Named;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.loader.ConfigurationLoader;
 
@@ -21,8 +23,8 @@ public class BaseRegion implements Serializable, IRegion {
     private final String world;
     private final String regionID;
     private final String displayName;
+    private transient final RegionDataHandler regionDataHandler;
     private transient final RegionFeatureManager featureManager;
-    private transient final RegionGroupRegistry groupRegistry;
     private transient final SettingAccessor settingAccessor;
 
     private transient CompletableFuture<Void> deletionTask;
@@ -34,9 +36,9 @@ public class BaseRegion implements Serializable, IRegion {
                       @NotNull @Assisted("displayName") String displayName,
                       @NotNull RegionFactory regionFactory,
                       @NotNull RegionGroupRegistry regionGroupRegistry,
-                      @NotNull ConfigurationLoader<?> configurationLoader
+                      @NotNull RegionDataHandler regionDataHandler
     ) {
-        this(UUID.randomUUID(), world, regionID, displayName, regionFactory, regionGroupRegistry, configurationLoader);
+        this(UUID.randomUUID(), world, regionID, displayName, regionFactory, regionGroupRegistry, regionDataHandler);
     }
 
     @AssistedInject
@@ -46,7 +48,7 @@ public class BaseRegion implements Serializable, IRegion {
                       @NotNull @Assisted("displayName") String displayName,
                       @NotNull RegionFactory regionFactory,
                       @NotNull RegionGroupRegistry regionGroupRegistry,
-                      @NotNull ConfigurationLoader<?> configurationLoader
+                      @NotNull RegionDataHandler regionDataHandler
                       ) {
 
         this.uuid = Objects.requireNonNull(uuid);
@@ -54,8 +56,8 @@ public class BaseRegion implements Serializable, IRegion {
         this.regionID = Objects.requireNonNull(regionID, "regionID cannot be null!");
         this.displayName = Objects.requireNonNull(displayName, "displayName cannot be null!");
         this.featureManager = regionFactory.newFeatureManager(this);
-        this.groupRegistry = regionGroupRegistry;
-        this.settingAccessor = new GroupedSettingAccessor(() -> regionGroupRegistry.groups(this.uuid), configurationLoader.createNode());
+        this.regionDataHandler = regionDataHandler;
+        this.settingAccessor = new GroupedSettingAccessor(() -> regionGroupRegistry.groups(this.uuid), regionDataHandler.getOrCreateDataFor(this));
     }
 
     protected void delete() {
@@ -63,6 +65,7 @@ public class BaseRegion implements Serializable, IRegion {
             regionFeature.delete();
         }
         featureManager.clear();
+        this.regionDataHandler.removeData(this);
     }
 
     @Override
