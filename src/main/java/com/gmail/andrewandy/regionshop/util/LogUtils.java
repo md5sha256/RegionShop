@@ -6,8 +6,7 @@ import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
-import net.md_5.bungee.api.chat.BaseComponent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayOutputStream;
@@ -30,8 +29,8 @@ public class LogUtils {
     private TaskChainFactory taskChainFactory;
     @Inject
     private MiniMessage miniMessage;
-    @Inject
-    private BungeeComponentSerializer serializer;
+
+    private LegacyComponentSerializer serializer = LegacyComponentSerializer.legacySection();
 
     private volatile String prefix = "";
 
@@ -47,8 +46,7 @@ public class LogUtils {
         final String[] serialized = new String[messages.length];
         for (int i = 0; i < messages.length; i++) {
             final Component component = miniMessage.parse(prefix + messages[i]);
-            final BaseComponent[] bungee = serializer.serialize(component);
-            serialized[i] = BaseComponent.toLegacyText(bungee);
+            serialized[i] = serializer.serialize(component);
         }
         taskChainFactory.newChain().sync(() -> {
             for (String s : serialized) {

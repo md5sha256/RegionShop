@@ -21,7 +21,7 @@ import java.util.logging.Level;
 public class FeatureManagerImpl implements RegionFeatureManager {
 
     private static final TypeToken<MutableClassToInstanceMap<RegionFeature>> MAP_TOKEN =
-            new TypeToken<MutableClassToInstanceMap<RegionFeature>>() {
+            new TypeToken<>() {
             };
     private final MutableClassToInstanceMap<RegionFeature> featureMap = MutableClassToInstanceMap.create();
     private final IRegion region;

@@ -1,0 +1,98 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '7.0.0'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri('https://hub.spigotmc.org/nexus/content/repositories/snapshots/')
+    }
+
+    maven {
+        url = uri('https://oss.sonatype.org/content/groups/public/')
+    }
+
+    maven {
+        url = uri('https://maven.enginehub.org/repo/')
+    }
+
+    maven {
+        url = uri('https://jitpack.io')
+    }
+
+    maven {
+        url = uri('https://repo.aikar.co/content/groups/aikar/')
+    }
+}
+
+dependencies {
+    implementation 'cloud.commandframework:cloud-paper:1.5.0'
+    implementation 'cloud.commandframework:cloud-annotations:1.5.0'
+    implementation 'org.jetbrains:annotations:21.0.0'
+    implementation 'co.aikar:taskchain-bukkit:3.7.2'
+
+    implementation ('com.google.inject:guice:5.0.1') {
+        exclude(group: "com.google.guava", module: "guava")
+    }
+    implementation ('com.google.inject.extensions:guice-assistedinject:5.0.1') {
+        exclude(group: "com.google.inject", module: "guice")
+    }
+    implementation 'net.kyori:adventure-text-minimessage:4.0.0-SNAPSHOT'
+    implementation 'org.spongepowered:configurate-hocon:4.1.2'
+    implementation 'org.spongepowered:configurate-gson:4.1.2'
+    implementation 'com.zaxxer:HikariCP:5.0.0'
+
+    compileOnly 'io.papermc.paper:paper-api:1.17.1-R0.1-SNAPSHOT'
+    compileOnly('com.github.MilkBowl:VaultAPI:1.7') {
+        exclude(group: "org.bukkit", module: "bukkit")
+        transitive(false)
+    }
+    compileOnly('com.sk89q.worldguard:worldguard-bukkit:7.0.5-SNAPSHOT') {
+        exclude(group: "org.bukkit", module: "bukkit")
+        exclude(group: "it.unimi.dsi", module: "fastutil")
+    }
+    compileOnly('com.sk89q.worldedit:worldedit-bukkit:7.2.6-SNAPSHOT') {
+        exclude(group: "org.bukkit", module: "bukkit")
+        exclude(group: "it.unimi.dsi", module: "fastutil")
+    }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+    testImplementation 'org.xerial:sqlite-jdbc:3.34.0'
+    testImplementation 'com.google.guava:guava:30.1.1-jre'
+    testImplementation 'net.md-5:bungeecord-chat:1.16-R0.4'
+    testImplementation 'net.kyori:adventure-text-serializer-legacy:4.8.1'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+group = 'com.github.md5sha256'
+version = '1.0-SNAPSHOT'
+description = 'RegionShop'
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+    options.release.set(16)
+}
+
+assemble {
+    dependsOn(shadowJar)
+}
+
+shadowJar {
+    String base = "${group}.shaded"
+    relocate("aopalliance.aopalliance", "${base}.aopallicance")
+    relocate("cloud.commandframework", "${base}.commandframework")
+    relocate("co.aikar.taskchain", "${base}.taskchain")
+    relocate("com.google.inject", "${base}.inject")
+    relocate("com.zaxxer.hikari", "${base}.hikari")
+    relocate("io.leangen.geantyref", "${base}.geantyref")
+    relocate("javax.inject", "${base}.javax.inject")
+    relocate("net.kyori.examination", "${base}.examination")
+    relocate("org.checkerframework", "${base}.checkerframework")
+    relocate("org.jetbrains.annotations", "${base}.annotations")
+    relocate("org.spongepowered.configurate", "${base}.configurate")
+}

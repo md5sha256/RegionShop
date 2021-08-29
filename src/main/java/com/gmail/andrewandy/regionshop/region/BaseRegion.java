@@ -3,6 +3,7 @@ package com.gmail.andrewandy.regionshop.region;
 import com.gmail.andrewandy.regionshop.region.feature.RegionFeature;
 import com.gmail.andrewandy.regionshop.region.feature.RegionFeatureManager;
 import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.Serializable;
@@ -20,6 +21,7 @@ public class BaseRegion implements Serializable, IRegion {
     private transient CompletableFuture<Void> deletionTask;
     private transient boolean deleted;
 
+    @AssistedInject
     public BaseRegion(@NotNull @Assisted("world") String world,
                       @NotNull @Assisted("regionID") String regionID,
                       @NotNull @Assisted("displayName") String displayName,
@@ -28,6 +30,7 @@ public class BaseRegion implements Serializable, IRegion {
         this(UUID.randomUUID(), world, regionID, displayName, featureFactory);
     }
 
+    @AssistedInject
     public BaseRegion(@NotNull @Assisted UUID uuid,
                       @NotNull @Assisted("world") String world,
                       @NotNull @Assisted("regionID") String regionID,

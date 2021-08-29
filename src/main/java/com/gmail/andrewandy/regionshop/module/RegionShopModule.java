@@ -22,11 +22,9 @@ import com.google.inject.Provides;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.name.Named;
-import com.google.inject.name.Names;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.pool.HikariPool;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.spongepowered.configurate.CommentedConfigurationNode;
 import org.spongepowered.configurate.hocon.HoconConfigurationLoader;
@@ -47,8 +45,6 @@ public class RegionShopModule extends AbstractModule {
     protected void configure() {
         bind(LogUtils.class).asEagerSingleton();
         bind(MiniMessage.class).toInstance(MiniMessage.get());
-        bind(BungeeComponentSerializer.class).toInstance(BungeeComponentSerializer.get());
-        bind(BungeeComponentSerializer.class).annotatedWith(Names.named("legacy")).toInstance(BungeeComponentSerializer.legacy());
         bind(RegionShopConfig.class).to(InternalConfig.class);
         bind(AccessDataSerializer.class).asEagerSingleton();
         bind(FeatureInitializers.class).asEagerSingleton();
